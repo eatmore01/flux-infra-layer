@@ -1,0 +1,24 @@
+installCRDs: true
+
+priorityClassName: "system-cluster-critical"
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+web:
+  config:
+    authentication:
+      type: Anonymous
+      anonymous:
+        username: flux
+        groups:
+        - flux-admin
+  networkPolicy:
+    create: false
+
+logLevel: "info"

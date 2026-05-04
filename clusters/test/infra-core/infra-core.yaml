@@ -1,0 +1,88 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: infra-core
+  namespace: flux-system
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "5m"
+spec:
+  inputs:
+  - component: "flux-operator"
+    namespace: "flux-system"
+
+  - component: "metallb"
+    namespace: "metallb-system"
+  - component: "metallb-configs"
+    namespace: "metallb-system"
+    dependsOn:
+    - name: "metallb"
+      namespace: "metallb-system"
+  wait: true
+  resourcesTemplate: |
+    ---
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: << inputs.namespace >>
+      labels:
+        kustomize.toolkit.fluxcd.io/prune: "disabled"
+      annotations:
+        fluxcd.controlplane.io/prune: disabled
+    ---
+    apiVersion: kustomize.toolkit.fluxcd.io/v1
+    kind: Kustomization
+    metadata:
+      name: << inputs.component >>
+      namespace: << inputs.namespace >>
+    spec:
+      interval: 1h
+      path: ./infra-core/<< inputs.component >>
+      prune: true
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+      targetNamespace: << inputs.namespace >>
+      retryInterval: 5m
+      wait: true
+      timeout: 5m
+      <<- if hasKey inputs "dependsOn" >>
+      dependsOn:
+        <<- range $d := inputs.dependsOn >>
+        - name: << $d.name >>
+          namespace: << $d.namespace >>
+        <<- end >>
+      <<- end >>
+      patches:
+        - # Add Kustomization defaults for all child Kustomizations
+          patch: |-
+            apiVersion: kustomize.toolkit.fluxcd.io/v1
+            kind: Kustomization
+            metadata:
+              name: _
+            spec:
+              patches:
+                - patch: |-
+                    apiVersion: helm.toolkit.fluxcd.io/v2
+                    kind: HelmRelease
+                    metadata:
+                      name: _
+                    spec:
+                      install:
+                        crds: CreateReplace
+                      rollback:
+                        cleanupOnFail: true
+                      upgrade:
+                        cleanupOnFail: true
+                        crds: CreateReplace
+                        strategy:
+                          name: RemediateOnFailure
+                        remediation:
+                          remediateLastFailure: true
+                          retries: 2
+                  target:
+                    group: helm.toolkit.fluxcd.io
+                    kind: HelmRelease
+          target:
+            group: kustomize.toolkit.fluxcd.io
+            kind: Kustomization
