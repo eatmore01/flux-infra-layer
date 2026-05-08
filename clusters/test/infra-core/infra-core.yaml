@@ -17,6 +17,12 @@ spec:
     dependsOn:
     - name: "metallb"
       namespace: "metallb-system"
+
+  - component: "envoy-gateway"
+    namespace: "envoy-system"
+    dependsOn:
+    - name: "metallb"
+      namespace: "metallb-system"
   wait: true
   resourcesTemplate: |
     ---

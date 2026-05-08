@@ -1,0 +1,30 @@
+
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: envoy-gateway
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: envoy-gateway
+  interval: 1h
+  values:
+    podDisruptionBudget:
+      minAvailable: 1
+    deployment:
+      envoyGateway:
+        resources:
+          limits:
+            memory: 1024Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+    hpa:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 6
+    createNamespace: true
+    crds:
+      gatewayAPI:
+        channel: "standard"
+
