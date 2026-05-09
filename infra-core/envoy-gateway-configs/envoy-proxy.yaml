@@ -1,0 +1,22 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: main-template
+spec:
+  logging:
+    level:
+      default: warn
+      upstream: info
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        externalTrafficPolicy: Cluster # Local
+        type: LoadBalancer
+      # envoyDeployment:
+      #   replicas: 5 # worker node count with Local ETP
+      #   pod:
+      #     affinity:
+      #       podAntiAffinity:
+      #         requiredDuringSchedulingIgnoredDuringExecution:
+      #         - topologyKey: "kubernetes.io/hostname"

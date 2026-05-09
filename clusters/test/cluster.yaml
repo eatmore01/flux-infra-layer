@@ -7,8 +7,14 @@ metadata:
     fluxcd.controlplane.io/reconcileEvery: "5m"
 spec:
   inputs:
+  - component: "flux"
+    namespace: "flux-system"
+
   - component: "infra-core"
     namespace: "flux-system"
+    dependsOn:
+    - name: "flux"
+      namespace: "flux-system"
 
   - component: "infra-apps"
     namespace: "flux-system"
@@ -25,7 +31,7 @@ spec:
       namespace: << inputs.namespace >>
     spec:
       interval: 1h
-      path: ./cluster/test/<< inputs.component >>
+      path: ./clusters/test/<< inputs.component >>
       prune: true
       sourceRef:
         kind: GitRepository
@@ -42,4 +48,3 @@ spec:
           namespace: << $d.namespace >>
         <<- end >>
       <<- end >>
-

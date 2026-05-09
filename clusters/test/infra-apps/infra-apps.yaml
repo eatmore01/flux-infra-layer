@@ -1,18 +1,12 @@
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSet
 metadata:
-  name: infra-apps
+  name: infra-core
   namespace: flux-system
   annotations:
     fluxcd.controlplane.io/reconcileEvery: "5m"
 spec:
-  inputs:
-  - component: "flux-instance"
-    namespace: "flux-system"
-    dependsOn:
-    - name: "flux-operator"
-      namespace: "flux-system"
-  wait: true
+  inputs: []
   resourcesTemplate: |
     ---
     apiVersion: v1
@@ -30,7 +24,6 @@ spec:
       name: << inputs.component >>
       namespace: << inputs.namespace >>
     spec:
-      interval: 1h
       path: ./infra-apps/<< inputs.component >>
       prune: true
       sourceRef:
@@ -38,9 +31,10 @@ spec:
         name: flux-system
         namespace: flux-system
       targetNamespace: << inputs.namespace >>
-      retryInterval: 5m
+      interval: 12h
+      retryInterval: 1m
+      timeout: 1m
       wait: true
-      timeout: 5m
       <<- if hasKey inputs "dependsOn" >>
       dependsOn:
         <<- range $d := inputs.dependsOn >>

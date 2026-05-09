@@ -7,27 +7,14 @@ metadata:
     fluxcd.controlplane.io/reconcileEvery: "5m"
 spec:
   inputs:
-  - component: "metallb"
-    namespace: "metallb-system"
-  - component: "metallb-configs"
-    namespace: "metallb-system"
-    dependsOn:
-    - name: "metallb"
-      namespace: "metallb-system"
+  - component: "flux-operator"
+    namespace: "flux-system"
 
-  - component: "envoy-gateway"
-    namespace: "gateway-system"
+  - component: "flux-instance"
+    namespace: "flux-system"
     dependsOn:
-    - name: "metallb"
-      namespace: "metallb-system"
-  - component: "envoy-gateway-configs"
-    namespace: "gateway-system"
-    dependsOn:
-    - name: "envoy-gateway"
-      namespace: "gateway-system"
-
-  - component: "cert-manager"
-    namespace: "cert-manager"
+    - name: "flux-operator"
+      namespace: "flux-system"
   resourcesTemplate: |
     ---
     apiVersion: v1
@@ -45,17 +32,17 @@ spec:
       name: << inputs.component >>
       namespace: << inputs.namespace >>
     spec:
-      path: ./infra-core/<< inputs.component >>
+      interval: 1h
+      path: ./flux/<< inputs.component >>
       prune: true
       sourceRef:
         kind: GitRepository
         name: flux-system
         namespace: flux-system
       targetNamespace: << inputs.namespace >>
-      interval: 2h
       retryInterval: 5m
-      timeout: 5m
       wait: true
+      timeout: 5m
       <<- if hasKey inputs "dependsOn" >>
       dependsOn:
         <<- range $d := inputs.dependsOn >>
