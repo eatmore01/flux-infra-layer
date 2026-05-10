@@ -9,10 +9,13 @@ spec:
   inputs:
   - component: "metallb"
     namespace: "metallb-system"
+
   - component: "envoy-gateway"
     namespace: "gateway-system"
+
   - component: "cert-manager"
     namespace: "cert-manager"
+
   - component: "metrics-server"
     namespace: "metrics-server"
   resourcesTemplate: |
