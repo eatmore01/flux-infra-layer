@@ -1,7 +1,7 @@
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSet
 metadata:
-  name: infra-core
+  name: infra-configs
   namespace: flux-system
   annotations:
     fluxcd.controlplane.io/reconcileEvery: "5m"
@@ -11,10 +11,6 @@ spec:
     namespace: "metallb-system"
   - component: "envoy-gateway"
     namespace: "gateway-system"
-  - component: "cert-manager"
-    namespace: "cert-manager"
-  - component: "metrics-server"
-    namespace: "metrics-server"
   resourcesTemplate: |
     ---
     apiVersion: v1
@@ -30,17 +26,17 @@ spec:
     kind: Kustomization
     metadata:
       name: << inputs.component >>
-      namespace: infra-core
+      namespace: infra-configs
     spec:
-      path: ./infra-core/<< inputs.component >>
+      path: ./infra-configs/<< inputs.component >>
       prune: true
       sourceRef:
         kind: GitRepository
         name: flux-system
         namespace: flux-system
       targetNamespace: << inputs.namespace >>
-      interval: 2h
-      retryInterval: 5m
+      interval: 12h
+      retryInterval: 2m
       timeout: 5m
       wait: true
       <<- if hasKey inputs "dependsOn" >>

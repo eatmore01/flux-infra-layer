@@ -1,7 +1,7 @@
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSet
 metadata:
-  name: infra-core
+  name: infra-apps
   namespace: flux-system
   annotations:
     fluxcd.controlplane.io/reconcileEvery: "5m"
@@ -22,7 +22,7 @@ spec:
     kind: Kustomization
     metadata:
       name: << inputs.component >>
-      namespace: << inputs.namespace >>
+      namespace: infra-apps
     spec:
       path: ./infra-apps/<< inputs.component >>
       prune: true
@@ -32,8 +32,8 @@ spec:
         namespace: flux-system
       targetNamespace: << inputs.namespace >>
       interval: 12h
-      retryInterval: 1m
-      timeout: 1m
+      retryInterval: 5m
+      timeout: 5m
       wait: true
       <<- if hasKey inputs "dependsOn" >>
       dependsOn:
@@ -42,36 +42,3 @@ spec:
           namespace: << $d.namespace >>
         <<- end >>
       <<- end >>
-      patches:
-        - # Add Kustomization defaults for all child Kustomizations
-          patch: |-
-            apiVersion: kustomize.toolkit.fluxcd.io/v1
-            kind: Kustomization
-            metadata:
-              name: _
-            spec:
-              patches:
-                - patch: |-
-                    apiVersion: helm.toolkit.fluxcd.io/v2
-                    kind: HelmRelease
-                    metadata:
-                      name: _
-                    spec:
-                      install:
-                        crds: CreateReplace
-                      rollback:
-                        cleanupOnFail: true
-                      upgrade:
-                        cleanupOnFail: true
-                        crds: CreateReplace
-                        strategy:
-                          name: RemediateOnFailure
-                        remediation:
-                          remediateLastFailure: true
-                          retries: 2
-                  target:
-                    group: helm.toolkit.fluxcd.io
-                    kind: HelmRelease
-          target:
-            group: kustomize.toolkit.fluxcd.io
-            kind: Kustomization
