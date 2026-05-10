@@ -11,23 +11,29 @@ spec:
     namespace: "flux-system"
 
   - component: "infra-core"
+    namespace: "infra-core"
     dependsOn:
     - name: "flux"
+      namespace: "flux-system"
 
   - component: "infra-configs"
+    namespace: "infra-configs"
     dependsOn:
     - name: "infra-core"
+      namespace: "infra-core"
 
   - component: "infra-apps"
+    namespace: "infra-apps"
     dependsOn:
     - name: "infra-configs"
+      namespace: "infra-configs"
   wait: true
   resourcesTemplate: |
     ---
     apiVersion: v1
     kind: Namespace
     metadata:
-      name: << inputs.component >>
+      name: << inputs.namespace >>
       labels:
         kustomize.toolkit.fluxcd.io/prune: "disabled"
       annotations:
@@ -37,7 +43,7 @@ spec:
     kind: Kustomization
     metadata:
       name: << inputs.component >>
-      namespace: << inputs.component >>
+      namespace: << inputs.namespace >>
     spec:
       interval: 1h
       path: ./clusters/test/<< inputs.component >>
@@ -46,7 +52,7 @@ spec:
         kind: GitRepository
         name: flux-system
         namespace: flux-system
-      targetNamespace: flux-system
+      targetNamespace:  << inputs.namespace >>
       retryInterval: 5m
       wait: true
       timeout: 5m
@@ -54,7 +60,7 @@ spec:
       dependsOn:
         <<- range $d := inputs.dependsOn >>
         - name: << $d.name >>
-          namespace: flux-system
+          namespace: << $d.namespace >>
         <<- end >>
       <<- end >>
       patches:
