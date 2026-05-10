@@ -1,0 +1,16 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: skooner
+spec:
+  chart:
+    spec:
+      chart: skooner
+      version: "0.4.0"
+      sourceRef:
+        kind: HelmRepository
+        name: skooner
+  interval: 1h
+  values:
+    service:
+      type: LoadBalancer
