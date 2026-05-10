@@ -9,8 +9,15 @@ spec:
   inputs:
   - component: "metallb"
     namespace: "metallb-system"
+    dependsOn:
+    - name: "metallb"
+      namespace: "infra-core"
+
   - component: "envoy-gateway"
     namespace: "gateway-system"
+    dependsOn:
+    - name: "envoy-gateway"
+      namespace: "infra-core"
   resourcesTemplate: |
     ---
     apiVersion: v1
